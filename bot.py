@@ -19,8 +19,13 @@ def send_whatsapp_message(to, message):
         "to": to,
         "text": {"body": message}
     }
+    
+    print(f"📤 Enviando mensagem para {to}: {message}")  # Log antes do envio
     response = requests.post(WHATSAPP_API_URL, headers=headers, json=payload)
-    print(f"📩 Resposta enviada para {to}: {message}")
+    
+    print(f"🔄 Status da resposta: {response.status_code}")  # Log do status
+    print(f"📩 Resposta da API: {response.json()}")  # Log do JSON da resposta
+    
     return response.json()
 
 # Rota para receber mensagens do WhatsApp
@@ -38,6 +43,8 @@ def whatsapp_webhook():
                 for message in messages:
                     sender = message["from"]
                     text = message.get("text", {}).get("body", "")
+
+                    print(f"📨 Mensagem recebida de {sender}: {text}")  # Log da mensagem
 
                     # Criar uma resposta
                     response_message = f"📩 Você enviou: {text}"
