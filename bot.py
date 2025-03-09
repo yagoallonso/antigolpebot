@@ -19,12 +19,15 @@ def send_whatsapp_message(to, message):
         "to": to,
         "text": {"body": message}
     }
-    
-    print(f"📤 Enviando mensagem para {to}: {message}")  # Log antes do envio
+
+    print(f"📤 Tentando enviar mensagem para {to}: {message}")  # Log antes do envio
     response = requests.post(WHATSAPP_API_URL, headers=headers, json=payload)
-    
-    print(f"🔄 Status da resposta: {response.status_code}")  # Log do status
-    print(f"📩 Resposta da API: {response.json()}")  # Log do JSON da resposta
+
+    print(f"🔄 Código de status da resposta: {response.status_code}")  # Código HTTP
+    print(f"📩 Resposta da API do WhatsApp: {response.json()}")  # Log da resposta JSON
+
+    if response.status_code != 200:
+        print(f"⚠️ ERRO ao enviar mensagem: {response.text}")  # Log do erro completo
     
     return response.json()
 
