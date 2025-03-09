@@ -7,7 +7,7 @@ app = Flask(__name__)
 # Configuração da API do WhatsApp
 WHATSAPP_API_URL = "https://graph.facebook.com/v17.0/618470544675414/messages"
 ACCESS_TOKEN = "EAAJZAaaQbvioBO9GSOTAg3IyoZCrTXw0xC3XJQDZAMgUyQiHfD608P9kJ9EjN9HQwm3WsG6DtVzF7e7rK940hCZBbzoXjvBQTPd94S8ZCbglZARNrZBL9ybsHMnAVX1BfIjcbgjnUF33o3qM7zyLz22UGKBSN0v9JIEYWFyXwHkFkrZCn1KnMEW1HZCHW2lytX1YyoWx5Rk6s8KZAKdrqCO2M0EZBp0llhhNAbqcHgNcLJ6IscZD"
-GOOGLE_SAFE_BROWSING_API_KEY = "YOUR_GOOGLE_API_KEY"
+GOOGLE_SAFE_BROWSING_API_KEY = "AIzaSyDK_C1tOxBxKwW9gHO61SVZr9nr_rgkdjg"
 
 # Função para enviar mensagem no WhatsApp
 def send_whatsapp_message(to, message):
