@@ -74,5 +74,8 @@ def verify_webhook():
         print("Token inválido ou erro na verificação!")
         return "Token inválido", 403
 
+import os
+
 if __name__ == "__main__":
-    app.run(port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))  # Obtém a porta do ambiente (Render usa isso)
+    app.run(host="0.0.0.0", port=port)  # Garante que o servidor escute corretamente
