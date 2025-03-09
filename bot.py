@@ -48,10 +48,10 @@ def whatsapp_webhook():
                     text = message.get("text", {}).get("body", "")
 
                     print(f"📨 Mensagem recebida de {sender}: {text}")  # Log da mensagem
-
-                    # Criar uma resposta
                     response_message = f"📩 Você enviou: {text}"
-                    send_whatsapp_message(sender, response_message)
+                    
+                    print("🚀 Chamando send_whatsapp_message()...")  # NOVO LOG
+                    send_whatsapp_message(sender, response_message)  # Envia a resposta
 
     return jsonify({"status": "received"}), 200
 
