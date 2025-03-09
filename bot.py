@@ -4,12 +4,11 @@ import os
 
 app = Flask(__name__)
 
-# Configuração da API do WhatsApp
 WHATSAPP_API_URL = "https://graph.facebook.com/v17.0/618470544675414/messages"
-ACCESS_TOKEN = "EAAJZAaaQbvioBO9GSOTAg3IyoZCrTXw0xC3XJQDZAMgUyQiHfD608P9kJ9EjN9HQwm3WsG6DtVzF7e7rK940hCZBbzoXjvBQTPd94S8ZCbglZARNrZBL9ybsHMnAVX1BfIjcbgjnUF33o3qM7zyLz22UGKBSN0v9JIEYWFyXwHkFkrZCn1KnMEW1HZCHW2lytX1YyoWx5Rk6s8KZAKdrqCO2M0EZBp0llhhNAbqcHgNcLJ6IscZD"
-GOOGLE_SAFE_BROWSING_API_KEY = "AIzaSyDK_C1tOxBxKwW9gHO61SVZr9nr_rgkdjg"
+ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")  # Token do WhatsApp API
+VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")
 
-# Função para enviar mensagem no WhatsApp
+# Função para enviar mensagens de resposta no WhatsApp
 def send_whatsapp_message(to, message):
     headers = {
         "Authorization": f"Bearer {ACCESS_TOKEN}",
@@ -20,62 +19,42 @@ def send_whatsapp_message(to, message):
         "to": to,
         "text": {"body": message}
     }
-    requests.post(WHATSAPP_API_URL, headers=headers, json=payload)
+    response = requests.post(WHATSAPP_API_URL, headers=headers, json=payload)
+    print(f"📩 Resposta enviada para {to}: {message}")
+    return response.json()
 
-# Função para verificar se um link é seguro
-def check_url_safety(url):
-    api_url = f"https://safebrowsing.googleapis.com/v4/threatMatches:find?key={GOOGLE_SAFE_BROWSING_API_KEY}"
-    payload = {
-        "client": {"clientId": "yourcompany", "clientVersion": "1.0"},
-        "threatInfo": {
-            "threatTypes": ["MALWARE", "SOCIAL_ENGINEERING"],
-            "platformTypes": ["ANY_PLATFORM"],
-            "threatEntryTypes": ["URL"],
-            "threatEntries": [{"url": url}]
-        }
-    }
-    response = requests.post(api_url, json=payload)
-    result = response.json()
-    return "Este link pode ser perigoso!" if "matches" in result else "O link parece seguro."
-
-# Rota do Webhook do WhatsApp
+# Rota para receber mensagens do WhatsApp
 @app.route("/webhook", methods=["POST"])
 def whatsapp_webhook():
     data = request.get_json()
-    if "messages" in data.get("entry", [{}])[0].get("changes", [{}])[0].get("value", {}):
-        message = data["entry"][0]["changes"][0]["value"]["messages"][0]
-        sender = message["from"]
-        text = message.get("text", {}).get("body", "")
+    print("📥 Mensagem Recebida:", data)
 
-        # Se for um link, verificar a segurança dele
-        if "http" in text:
-            response_message = check_url_safety(text)
-        else:
-            response_message = "Desculpe, ainda não entendo essa solicitação."
-        
-        send_whatsapp_message(sender, response_message)
-    return jsonify({"status": "received"})
+    if "entry" in data:
+        for entry in data["entry"]:
+            changes = entry.get("changes", [])
+            for change in changes:
+                value = change.get("value", {})
+                messages = value.get("messages", [])
+                for message in messages:
+                    sender = message["from"]
+                    text = message.get("text", {}).get("body", "")
 
-# Rota para validação do Webhook
+                    # Criar uma resposta
+                    response_message = f"📩 Você enviou: {text}"
+                    send_whatsapp_message(sender, response_message)
+
+    return jsonify({"status": "received"}), 200
+
+# Rota para verificação do webhook
 @app.route("/webhook", methods=["GET"])
 def verify_webhook():
-    print("Recebida uma solicitação de verificação do Meta!")  # Debug
-
     mode = request.args.get("hub.mode")
-    challenge = request.args.get("hub.challenge")
     token = request.args.get("hub.verify_token")
+    challenge = request.args.get("hub.challenge")
 
-    print(f"Modo: {mode}, Token Recebido: {token}, Challenge: {challenge}")  # Debug
-
-    if mode == "subscribe" and token == "meubottoken":  # Certifique-se de que o token está idêntico ao Meta
-        print("Token verificado com sucesso!")
-        return challenge, 200  # O Meta precisa que o desafio seja retornado diretamente
-    else:
-        print("Token inválido ou erro na verificação!")
-        return "Token inválido", 403
-
-import os
+    if mode == "subscribe" and token == VERIFY_TOKEN:
+        return challenge, 200
+    return "Erro de verificação", 403
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Obtém a porta do ambiente (Render usa isso)
-    app.run(host="0.0.0.0", port=port)  # Garante que o servidor escute corretamente
+    app.run(host="0.0.0.0", port=5000)
